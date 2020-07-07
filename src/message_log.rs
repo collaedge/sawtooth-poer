@@ -116,7 +116,7 @@ impl PbftLog {
             .collect()
     }
 
-    pub fn get_blocks($self) -> Vec<&Block> {
+    pub fn get_blocks(&self) -> Vec<&Block> {
         self.blocks
             .iter()
             .collect()
