@@ -116,6 +116,12 @@ impl PbftLog {
             .collect()
     }
 
+    pub fn get_blocks($self) -> Vec<&Block> {
+        self.blocks
+            .iter()
+            .collect()
+    }
+
     /// Get the `Block` with the specified block ID
     pub fn get_block_with_id(&self, block_id: &[u8]) -> Option<&Block> {
         self.blocks
