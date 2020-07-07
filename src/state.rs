@@ -86,6 +86,9 @@ pub struct PbftState {
     /// This node's ID
     pub id: PeerId,
 
+    /// primary node's ID
+    pub primary_id: PeerId,
+
     /// The node's current sequence number
     pub seq_num: u64,
 
@@ -150,6 +153,7 @@ impl PbftState {
 
         PbftState {
             id,
+            primary_id,
             seq_num: head_block_num + 1,
             view: 0,
             chain_head: BlockId::new(),
@@ -167,7 +171,6 @@ impl PbftState {
         }
     }
 
-    let mut primary_id: PeerId;
     /// Obtain the ID for the primary node in the network
     pub fn get_primary_id(&self) -> PeerId {
         let primary_index = (self.view as usize) % self.member_ids.len();
