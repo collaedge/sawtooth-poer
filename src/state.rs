@@ -87,7 +87,7 @@ pub struct PbftState {
     pub id: PeerId,
 
     /// primary node's ID
-    pub prid: PeerId,
+    pub leader_id: PeerId,
 
     /// The node's current sequence number
     pub seq_num: u64,
@@ -153,7 +153,7 @@ impl PbftState {
 
         PbftState {
             id,
-            prid,
+            leader_id: "",
             seq_num: head_block_num + 1,
             view: 0,
             chain_head: BlockId::new(),
@@ -176,12 +176,12 @@ impl PbftState {
         let primary_index = (self.view as usize) % self.member_ids.len();
         self.member_ids[primary_index].clone()
 
-        // self.prid
+        // self.leader_id
     }
 
     /// set primary node based on reputation score
     pub fn set_primary_id(&self, id: PeerId) {
-        self.prid = id;
+        self.leader_id = id;
     }
 
     /// Obtain the ID for the primary node at the specified view

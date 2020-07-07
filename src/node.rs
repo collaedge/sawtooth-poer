@@ -86,7 +86,7 @@ impl PbftNode {
             // set primary node based on its reputation
             let mut i = 1;
             while i < chain_head.block_num {
-                let block = n.msg_log.get_blocks_with_num(i).unwrap();
+                let block = n.msg_log.get_blocks_with_num(i);
                 info!("Block batches {:#?} ", block.batches);
             }
         }
