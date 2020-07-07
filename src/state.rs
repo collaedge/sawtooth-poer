@@ -153,7 +153,7 @@ impl PbftState {
 
         PbftState {
             id,
-            leader_id: "",
+            leader_id: PeerId::new(),
             seq_num: head_block_num + 1,
             view: 0,
             chain_head: BlockId::new(),
