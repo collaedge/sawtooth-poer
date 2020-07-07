@@ -167,10 +167,18 @@ impl PbftState {
         }
     }
 
+    let mut primary_id: PeerId;
     /// Obtain the ID for the primary node in the network
     pub fn get_primary_id(&self) -> PeerId {
         let primary_index = (self.view as usize) % self.member_ids.len();
         self.member_ids[primary_index].clone()
+
+        // self.primary_id
+    }
+
+    /// set primary node based on reputation score
+    pub fn set_primary_id(&self, id: PeerId) {
+        self.primary_id = id;
     }
 
     /// Obtain the ID for the primary node at the specified view

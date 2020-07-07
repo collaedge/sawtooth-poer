@@ -51,7 +51,7 @@ impl Engine for PbftEngine {
         let StartupState {
             chain_head,
             peers,
-            local_peer_info,
+            local_peer_info, // store local peer id
         } = startup_state;
 
         // Load on-chain settings
