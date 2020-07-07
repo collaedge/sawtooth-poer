@@ -88,6 +88,7 @@ impl PbftNode {
             while i < chain_head.block_num {
                 let block = n.msg_log.get_blocks_with_num(i);
                 info!("Block batches {:#?} ", block);
+                i = i + 1;
             }
         }
 

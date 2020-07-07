@@ -180,7 +180,7 @@ impl PbftState {
     }
 
     /// set primary node based on reputation score
-    pub fn set_primary_id(&self, id: PeerId) {
+    pub fn set_primary_id(&mut self, id: PeerId) {
         self.leader_id = id;
     }
 
