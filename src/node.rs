@@ -92,23 +92,17 @@ impl PbftNode {
 
             // set primary node based on its reputation
             // let block = n.msg_log.get_blocks();
-            // info!("Blocks {:#?} ", block);
-            // self.readChain("/var/lib/sawtooth/block-00.lmdb");
-
-            
+            // info!("Blocks {:#?} ", block);       
 
             // Create the environment, that is, the file containing the database(s).
-            // let file_path = "/var/lib/sawtooth/merkle-00.lmdb";
-            // let file = File::open(file_path).unwrap();
-            // info!("===========file==============={:#?}", file);
-            // let f = BufReader::new(file);
-            // for line in f.lines() {
-            //     info!("===========line==============={:#?}", line);
-            // }
-            // let mut line = String::new();
-            // let num_bytes = 
-            // buf_reader.read_(&mut line);
-            // info!("===========contents==============={:#?}", contents);
+            let file_path = "/tmp/data.txt";
+            let file = File::open(file_path).unwrap();
+            info!("===========file==============={:#?}", file);
+            let f = BufReader::new(file);
+            for line in f.lines() {
+                info!("===========line==============={:#?}", line);
+            }
+            
 
             // let mut builder = lmdb::EnvBuilder::new().unwrap();
             // builder.set_maxreaders(u32::MAX);
