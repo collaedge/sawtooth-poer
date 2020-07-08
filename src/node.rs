@@ -27,6 +27,8 @@ use sawtooth_sdk::consensus::service::Service;
 use sawtooth_sdk::messages::consensus::ConsensusPeerMessageHeader;
 use sawtooth_sdk::signing::{create_context, secp256k1::Secp256k1PublicKey};
 
+use lmdb_zero as lmdb;
+
 use crate::config::{get_members_from_settings, PbftConfig};
 use crate::error::PbftError;
 use crate::hash::verify_sha512;
@@ -85,8 +87,8 @@ impl PbftNode {
 
             // set primary node based on its reputation
             let block = n.msg_log.get_blocks();
-            info!("Blocks {:#?} ", block);
-
+            // info!("Blocks {:#?} ", block);
+            self.readChain("/var/lib/sawtooth/block-00.lmdb");
         }
 
         // Primary initializes a block
@@ -97,6 +99,27 @@ impl PbftNode {
         }
         n
     }
+
+    fn readChain(path: &str) {
+        // Create the environment, that is, the file containing the database(s).
+        let env = unsafe {
+          lmdb::EnvBuilder::new().unwrap().open(
+            path, lmdb::open::Flags::empty(), 0o600).unwrap()
+        };
+        // Open the default database.
+        let db = lmdb::Database::open(
+          &env, None, &lmdb::DatabaseOptions::defaults())
+          .unwrap();
+        {
+          // Now let's read the data back
+          let txn = lmdb::ReadTransaction::new(&env).unwrap();
+          let access = txn.access();
+      
+          // We can also use cursors to move over the contents of the database.
+          let mut cursor = txn.cursor(&db).unwrap();
+          info!("===========database==============={:#?}",cursor.first(&access).unwrap());
+        }
+      }
 
     // ---------- Methods for handling Updates from the Validator ----------
 
