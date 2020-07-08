@@ -89,42 +89,16 @@ impl PbftNode {
                         error!("Failed to broadcast bootstrap commit due to error: {}", err)
                     });
             }
-
-            // set primary node based on its reputation
-            // let block = n.msg_log.get_blocks();
-            // info!("Blocks {:#?} ", block);       
-
-            // Create the environment, that is, the file containing the database(s).
+            
             let file_path = "/tmp/data.txt";
             let file = File::open(file_path).unwrap();
-            info!("===========file==============={:#?}", file);
-            let f = BufReader::new(file);
-            for line in f.lines() {
-                info!("===========line==============={:#?}", line);
-            }
-            
-
-            // let mut builder = lmdb::EnvBuilder::new().unwrap();
-            // builder.set_maxreaders(u32::MAX);
-            // // info!("===========builder==============={:#?}", builder);
-            // let env = unsafe {
-            //   builder.open(
-            //     &file_path, flags, 0o600).unwrap()
-            // };
-            // // info!("===========env==============={:#?}", env);
-            // // Open the default database.
-            // let db = lmdb::Database::open(
-            //   &env, None, &lmdb::DatabaseOptions::defaults())
-            //   .unwrap();
-    
-            // // Now let's read the data back
-            // let txn = lmdb::ReadTransaction::new(&env).unwrap();
-            // // info!("===========txn==============={:#?}", txn);
-            // let access = txn.access();
-      
-            // // We can also use cursors to move over the contents of the database.
-            // let mut cursor = txn.cursor(&db).unwrap();
-            // info!("===========database==============={:#?}",cursor.first::<[u8;10],([u8;32]+[u16])>(&access));
+            let mut buf_reader = BufReader::new(file);
+            let mut contents = String::new();
+            buf_reader.read_to_string(&mut contents)?;
+            info!("===========contents==============={:#?}", contents);
+            // for line in f.lines() {
+            //     info!("===========line==============={:#?}", line);
+            // }
         }
 
         // Primary initializes a block
@@ -134,6 +108,10 @@ impl PbftNode {
             });
         }
         n
+    }
+
+    pub fn chooseLeader(data: String) {
+        let value: Vec<&str> = data.split(',').collect();
     }
 
     // ---------- Methods for handling Updates from the Validator ----------
