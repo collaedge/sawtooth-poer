@@ -19,6 +19,9 @@
 
 use std::collections::HashSet;
 use std::convert::From;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
 
 use itertools::Itertools;
 use protobuf::{Message, RepeatedField};
@@ -39,6 +42,8 @@ use crate::protos::pbft_message::{
 };
 use crate::state::{PbftMode, PbftPhase, PbftState};
 use crate::timing::{retry_until_ok, Timeout};
+
+
 
 /// Contains the core logic of the PBFT node
 pub struct PbftNode {
@@ -86,9 +91,46 @@ impl PbftNode {
             }
 
             // set primary node based on its reputation
-            let block = n.msg_log.get_blocks();
+            // let block = n.msg_log.get_blocks();
             // info!("Blocks {:#?} ", block);
-            self.readChain("/var/lib/sawtooth/block-00.lmdb");
+            // self.readChain("/var/lib/sawtooth/block-00.lmdb");
+
+            
+
+            // Create the environment, that is, the file containing the database(s).
+            // let file_path = "/var/lib/sawtooth/merkle-00.lmdb";
+            // let file = File::open(file_path).unwrap();
+            // info!("===========file==============={:#?}", file);
+            // let f = BufReader::new(file);
+            // for line in f.lines() {
+            //     info!("===========line==============={:#?}", line);
+            // }
+            // let mut line = String::new();
+            // let num_bytes = 
+            // buf_reader.read_(&mut line);
+            // info!("===========contents==============={:#?}", contents);
+
+            // let mut builder = lmdb::EnvBuilder::new().unwrap();
+            // builder.set_maxreaders(u32::MAX);
+            // // info!("===========builder==============={:#?}", builder);
+            // let env = unsafe {
+            //   builder.open(
+            //     &file_path, flags, 0o600).unwrap()
+            // };
+            // // info!("===========env==============={:#?}", env);
+            // // Open the default database.
+            // let db = lmdb::Database::open(
+            //   &env, None, &lmdb::DatabaseOptions::defaults())
+            //   .unwrap();
+    
+            // // Now let's read the data back
+            // let txn = lmdb::ReadTransaction::new(&env).unwrap();
+            // // info!("===========txn==============={:#?}", txn);
+            // let access = txn.access();
+      
+            // // We can also use cursors to move over the contents of the database.
+            // let mut cursor = txn.cursor(&db).unwrap();
+            // info!("===========database==============={:#?}",cursor.first::<[u8;10],([u8;32]+[u16])>(&access));
         }
 
         // Primary initializes a block
@@ -99,27 +141,6 @@ impl PbftNode {
         }
         n
     }
-
-    fn readChain(path: &str) {
-        // Create the environment, that is, the file containing the database(s).
-        let env = unsafe {
-          lmdb::EnvBuilder::new().unwrap().open(
-            path, lmdb::open::Flags::empty(), 0o600).unwrap()
-        };
-        // Open the default database.
-        let db = lmdb::Database::open(
-          &env, None, &lmdb::DatabaseOptions::defaults())
-          .unwrap();
-        {
-          // Now let's read the data back
-          let txn = lmdb::ReadTransaction::new(&env).unwrap();
-          let access = txn.access();
-      
-          // We can also use cursors to move over the contents of the database.
-          let mut cursor = txn.cursor(&db).unwrap();
-          info!("===========database==============={:#?}",cursor.first(&access).unwrap());
-        }
-      }
 
     // ---------- Methods for handling Updates from the Validator ----------
 
