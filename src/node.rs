@@ -16,7 +16,6 @@
  */
 
 //! The core PBFT algorithm
-
 use std::collections::HashSet;
 use std::convert::From;
 use std::fs::File;
@@ -42,7 +41,6 @@ use crate::protos::pbft_message::{
 };
 use crate::state::{PbftMode, PbftPhase, PbftState};
 use crate::timing::{retry_until_ok, Timeout};
-
 
 
 /// Contains the core logic of the PBFT node
@@ -90,14 +88,19 @@ impl PbftNode {
                     });
             }
         }
-        let s = hex::encode(vec![2, 169, 31, 138, 235, 22, 145, 129, 188, 192, 174, 48, 243, 134, 183, 163, 68, 167, 20, 123, 120, 80, 232, 80, 131, 204, 14, 0, 194, 101, 185, 22, 89]);
-        info!("===========member==============={:#?}", s);
-        // for member in &state.member_ids {
-        //     //let m_str = str::from_utf8(member).unwrap();
-        //     info!("===========member==============={:#?}", member);
-        //     // let m_str = String::from_utf8(member.to_vec());
-        //     // info!("===========m_str==============={:#?}", m_str);
-        // }
+        let ms: HashMap<&str, &str> = [
+        ("02a91f8aeb169181bcc0ae30f386b7a344a7147b7850e85083cc0e00c265b91659","server_a"),
+        ("03dce7069786b96a54ca9920093db2afe5b1cfd97dd55ff657064ea90f635267bc","server_b"),
+        ("039000a07ee2bbd18ac69e70ad9bc673a6fe7a292fda7642a1fd3ffa0488044890","server_c"),
+        ("02b6a85f2ca41c76d516968446cc6c775d762a22c9993e7da0a3279385657ec0af","server_d")
+        ].iter().cloned().collect();
+
+        for member in &state.member_ids {
+            // member's public key
+            let m_str = hex::encode(member);
+            info!("===========m_str==============={:#?}", m_str);
+            
+        }
         
         // Primary initializes a block
         if state.is_primary() {
