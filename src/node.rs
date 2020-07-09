@@ -89,16 +89,6 @@ impl PbftNode {
                         error!("Failed to broadcast bootstrap commit due to error: {}", err)
                     });
             }
-            
-            let file_path = "/tmp/data.txt";
-            let file = File::open(file_path).unwrap();
-            let mut buf_reader = BufReader::new(file);
-            let mut contents = String::new();
-            buf_reader.read_to_string(&mut contents)?;
-            info!("===========contents==============={:#?}", contents);
-            // for line in f.lines() {
-            //     info!("===========line==============={:#?}", line);
-            // }
         }
 
         // Primary initializes a block
@@ -110,8 +100,32 @@ impl PbftNode {
         n
     }
 
+    pub fn readChain() -> String{
+        let file_path = "/tmp/data.txt";
+        let file = File::open(file_path).unwrap();
+        let mut buf_reader = BufReader::new(file);
+        let mut contents = String::new();
+        buf_reader.read_to_string(&mut contents)?;
+        info!("===========contents==============={:#?}", contents);
+
+        contents 
+    }
+
     pub fn chooseLeader(data: String) {
         let value: Vec<&str> = data.split(',').collect();
+        let mut map = HashMap::new();
+        let mut i = 0; 
+        while i < value.len() {
+            let worker = value.get(i+1);
+            let rewards = value.get(i+7).parse::<i8>().unwarp();
+            if let Some(x) = map.get_mut(&worker) {
+                *x += rewards;
+            }else {
+                map.insert(w, rewards);
+            }
+            i = i+9;
+        }
+        info!("===========map==============={:#?}", map);
     }
 
     // ---------- Methods for handling Updates from the Validator ----------
@@ -1691,6 +1705,9 @@ impl PbftNode {
         }
 
         info!("{}: Starting change to view {}", state, view);
+
+        let data = readChain();
+        chooseLeader(data);
 
         state.mode = PbftMode::ViewChanging(view);
 
