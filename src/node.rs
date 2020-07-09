@@ -22,6 +22,7 @@ use std::convert::From;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::collections::HashMap;
 
 use itertools::Itertools;
 use protobuf::{Message, RepeatedField};
@@ -29,8 +30,6 @@ use sawtooth_sdk::consensus::engine::{Block, BlockId, PeerId, PeerInfo};
 use sawtooth_sdk::consensus::service::Service;
 use sawtooth_sdk::messages::consensus::ConsensusPeerMessageHeader;
 use sawtooth_sdk::signing::{create_context, secp256k1::Secp256k1PublicKey};
-
-use lmdb_zero as lmdb;
 
 use crate::config::{get_members_from_settings, PbftConfig};
 use crate::error::PbftError;
@@ -100,28 +99,28 @@ impl PbftNode {
         n
     }
 
-    pub fn readChain() -> String{
+    pub fn read_chain() -> String{
         let file_path = "/tmp/data.txt";
         let file = File::open(file_path).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
-        buf_reader.read_to_string(&mut contents)?;
+        buf_reader.read_to_string(&mut contents);
         info!("===========contents==============={:#?}", contents);
 
         contents 
     }
 
-    pub fn chooseLeader(data: String) {
-        let value: Vec<&str> = data.split(',').collect();
+    pub fn choose_leader(data: String) {
+        let mut value: Vec<&str> = data.split(',').collect();
         let mut map = HashMap::new();
         let mut i = 0; 
-        while i < value.len() {
-            let worker = value.get(i+1);
-            let rewards = value.get(i+7).parse::<i8>().unwarp();
+        while i < value.len() -1 {
+            let worker = value.get(i+1).unwrap();
+            let rewards = value.get(i+7).unwrap().parse::<f32>().unwrap();
             if let Some(x) = map.get_mut(&worker) {
                 *x += rewards;
             }else {
-                map.insert(w, rewards);
+                map.insert(worker, rewards);
             }
             i = i+9;
         }
@@ -1706,8 +1705,8 @@ impl PbftNode {
 
         info!("{}: Starting change to view {}", state, view);
 
-        let data = readChain();
-        chooseLeader(data);
+        let data = PbftNode::read_chain();
+        PbftNode::choose_leader(data);
 
         state.mode = PbftMode::ViewChanging(view);
 
