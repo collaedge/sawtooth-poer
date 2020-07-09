@@ -110,7 +110,7 @@ impl PbftNode {
         contents 
     }
 
-    pub fn choose_leader(data: String) {
+    pub fn choose_leader(data: String) -> String{
         let mut value: Vec<&str> = data.split(',').collect();
         let mut map = HashMap::new();
         let mut i = 0; 
@@ -125,6 +125,16 @@ impl PbftNode {
             i = i+9;
         }
         info!("===========map==============={:#?}", map);
+        let mut leader = "";
+        let mut tmp: f32 = 0.0;
+        for (key, value) in &map {
+            if value > &tmp {
+                tmp = *value;
+                leader = key;
+            }
+        }
+        info!("===========leader==============={:#?}", leader);
+        leader
     }
 
     // ---------- Methods for handling Updates from the Validator ----------
