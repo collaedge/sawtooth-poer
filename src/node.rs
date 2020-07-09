@@ -135,15 +135,6 @@ impl PbftNode {
         info!("===========leader==============={:#?}", leader);
         
 
-        let ms = map_node_pk();
-
-        let hex_str = ms[&leader];
-        let leader_bytes = hex::decode(hex_str).unwrap();
-        
-        leader_bytes
-    }
-
-    pub map_node_pk() -> HashMap<&str, &str>{
         let ms: HashMap<&str, &str> = [
             ("server_a", "02a91f8aeb169181bcc0ae30f386b7a344a7147b7850e85083cc0e00c265b91659"),
             ("server_b", "03dce7069786b96a54ca9920093db2afe5b1cfd97dd55ff657064ea90f635267bc"),
@@ -151,7 +142,10 @@ impl PbftNode {
             ("server_d", "02b6a85f2ca41c76d516968446cc6c775d762a22c9993e7da0a3279385657ec0af")
         ].iter().cloned().collect();
 
-        ms
+        let hex_str = ms[&leader];
+        let leader_bytes = hex::decode(hex_str).unwrap();
+        
+        leader_bytes
     }
 
     // ---------- Methods for handling Updates from the Validator ----------
@@ -1710,7 +1704,7 @@ impl PbftNode {
         self.service
             .send_to(
                 // peer
-                leader_id,
+                &leader_id,
                 // message_type
                 String::from(msg.info().get_msg_type()).as_str(),
                 // payload
