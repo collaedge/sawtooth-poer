@@ -23,6 +23,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::collections::HashMap;
+use std::str;
 
 use itertools::Itertools;
 use protobuf::{Message, RepeatedField};
@@ -89,7 +90,15 @@ impl PbftNode {
                     });
             }
         }
-
+        let s = hex::encode(vec![2, 169, 31, 138, 235, 22, 145, 129, 188, 192, 174, 48, 243, 134, 183, 163, 68, 167, 20, 123, 120, 80, 232, 80, 131, 204, 14, 0, 194, 101, 185, 22, 89]);
+        info!("===========member==============={:#?}", s);
+        // for member in &state.member_ids {
+        //     //let m_str = str::from_utf8(member).unwrap();
+        //     info!("===========member==============={:#?}", member);
+        //     // let m_str = String::from_utf8(member.to_vec());
+        //     // info!("===========m_str==============={:#?}", m_str);
+        // }
+        
         // Primary initializes a block
         if state.is_primary() {
             n.service.initialize_block(None).unwrap_or_else(|err| {
@@ -111,7 +120,7 @@ impl PbftNode {
     }
 
     pub fn choose_leader(data: String) -> String{
-        let mut value: Vec<&str> = data.split(',').collect();
+        let value: Vec<&str> = data.split(',').collect();
         let mut map = HashMap::new();
         let mut i = 0; 
         while i < value.len() -1 {
@@ -134,7 +143,7 @@ impl PbftNode {
             }
         }
         info!("===========leader==============={:#?}", leader);
-        leader
+        leader.to_string()
     }
 
     // ---------- Methods for handling Updates from the Validator ----------

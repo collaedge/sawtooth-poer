@@ -82,7 +82,7 @@ impl Engine for PbftEngine {
         );
 
         node.start_idle_timeout(&mut pbft_state.write());
-
+        
         // Main event loop; keep going until PBFT receives a Shutdown message or is disconnected
         loop {
             let incoming_message = updates.recv_timeout(self.config.update_recv_timeout);
