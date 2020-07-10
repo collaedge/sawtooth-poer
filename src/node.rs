@@ -148,7 +148,7 @@ impl PbftNode {
         
             leader_bytes
         }else {
-            []
+            [].to_vec()
         }
     }
 
