@@ -142,10 +142,14 @@ impl PbftNode {
             ("server_d", "02b6a85f2ca41c76d516968446cc6c775d762a22c9993e7da0a3279385657ec0af")
         ].iter().cloned().collect();
 
-        let hex_str = ms[&leader];
-        let leader_bytes = hex::decode(hex_str).unwrap();
+        if leader != ""{
+            let hex_str = ms[&leader];
+            let leader_bytes = hex::decode(hex_str).unwrap();
         
-        leader_bytes
+            leader_bytes
+        }else {
+            []
+        }
     }
 
     // ---------- Methods for handling Updates from the Validator ----------
