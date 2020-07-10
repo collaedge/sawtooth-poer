@@ -99,7 +99,7 @@ impl PbftNode {
     }
 
     pub fn read_chain() -> String{
-        let file_path = "/tmp/data.txt";
+        let file_path = "/home/sawtooth/data.txt";
         let file = File::open(file_path).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
