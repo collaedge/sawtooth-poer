@@ -267,10 +267,42 @@ impl PbftNode {
 
         // Add message to the log
         self.msg_log.add_message(msg.clone());
+        info!("===========handle_pre_prepare message==============={:#?}", msg);
 
         // If the node is in the PrePreparing phase, this message is for the current sequence
         // number, and the node already has this block: switch to Preparing
         self.try_preparing(msg.get_block_id(), state)
+
+        // If this message is for the current sequence number and the node is in the PrePreparing
+        // phase, check if the node is ready to move on to the Preparing phase
+        /*
+        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::PrePreparing {
+            // when its log has 2f + 1 Prepare messages from different nodes that match
+            // the PrePreparing message received earlier (same view, sequence number, and block)
+            let has_required_prepares = self
+                .msg_log
+                // Only get Prepares with matching seq_num, view, and block_id
+                .get_messages_of_type_seq_view_block(
+                    PbftMessageType::PrePreparing,
+                    info.get_seq_num(),
+                    info.get_view(),
+                    &block_id,
+                )
+                // Check if there are at least 2f + 1 Prepares
+                .len() as u64
+                > 2 * state.f;
+            if has_matching_pre_prepare && has_required_prepares {
+                state.switch_phase(PbftPhase::Committing)?;
+                self.broadcast_pbft_message(
+                    state.view,
+                    state.seq_num,
+                    PbftMessageType::Commit,
+                    block_id,
+                    state,
+                )?;
+            }
+        }
+        */
     }
 
     /// Handle a `Prepare` message
