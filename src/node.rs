@@ -284,7 +284,13 @@ impl PbftNode {
         // If this message is for the current sequence number and the node is in the PrePreparing
         // phase, check if the node is ready to move on to the Preparing phase
         /*
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::PrePrepare {
+        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::PrePreparing {
+            // Stop idle timeout, since a new block and valid PrePrepare were received in time
+            state.idle_timeout.stop();
+            // Now start the commit timeout in case the network fails to commit the block
+            // within a reasonable amount of time
+            state.commit_timeout.start();
+
             // when its log has 2f + 1 Prepare messages from different nodes that match
             // the PrePrepare message received earlier (same view, sequence number, and block)
             let has_required_prepares = self
@@ -300,17 +306,19 @@ impl PbftNode {
                 .len() as u64
                 > 2 * state.f;
             if has_matching_pre_prepare && has_required_prepares {
-                state.switch_phase(PbftPhase::Committing)?;
-                self.broadcast_pbft_message(
+                state.switch_phase(PbftPhase::Preparing)?;
+                self.send_pbft_message(
+                    state.get_primary_id(),
                     state.view,
                     state.seq_num,
-                    PbftMessageType::Commit,
+                    PbftMessageType::Prepare,
                     block_id,
                     state,
                 )?;
             }
         }
         */
+        
     }
 
     /// Handle a `Prepare` message
@@ -1818,6 +1826,8 @@ impl PbftNode {
         let data = PbftNode::read_chain();
         let leader = PbftNode::choose_leader(data);
         info!("===========leader==============={:#?}", leader);
+        state.set_primary_id(leader);
+        info!("===========state leader get==============={:#?}", state.get_primary_id());
 
         state.mode = PbftMode::ViewChanging(view);
 

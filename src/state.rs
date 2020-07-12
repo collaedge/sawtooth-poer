@@ -173,10 +173,10 @@ impl PbftState {
 
     /// Obtain the ID for the primary node in the network
     pub fn get_primary_id(&self) -> PeerId {
-        let primary_index = (self.view as usize) % self.member_ids.len();
-        self.member_ids[primary_index].clone()
+        // let primary_index = (self.view as usize) % self.member_ids.len();
+        // self.member_ids[primary_index].clone()
 
-        // self.leader_id
+        self.leader_id
     }
 
     /// set primary node based on reputation score

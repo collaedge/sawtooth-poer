@@ -81,6 +81,10 @@ impl Engine for PbftEngine {
             &mut pbft_state.write(),
         );
 
+        let contents = node.read_chain();
+        let leader = node.choose_leader(contents);
+        pbft_state.set_primary_id(leader);
+
         node.start_idle_timeout(&mut pbft_state.write());
         
         // Main event loop; keep going until PBFT receives a Shutdown message or is disconnected
