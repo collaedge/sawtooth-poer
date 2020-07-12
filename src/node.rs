@@ -87,6 +87,10 @@ impl PbftNode {
                         error!("Failed to broadcast bootstrap commit due to error: {}", err)
                     });
             }
+            let contents = PbftNode::read_chain();
+            let leader = PbftNode::choose_leader(contents);
+            state.set_primary_id(leader);
+            info!("=====pbft_state: primary id========={:#?}", state.get_primary_id());
         }
         
         // Primary initializes a block
