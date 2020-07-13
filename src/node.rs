@@ -44,7 +44,7 @@ use crate::timing::{retry_until_ok, Timeout};
 
 
 /// Contains the core logic of the PBFT node
-pub struct PbftNode {
+pub struct PoERNode {
     /// Used for interactions with the validator
     pub service: Box<dyn Service>,
 
@@ -52,7 +52,7 @@ pub struct PbftNode {
     pub msg_log: PbftLog,
 }
 
-impl PbftNode {
+impl PoERNode {
     /// Construct a new PBFT node
     ///
     /// If the node is the primary on start-up, it initializes a new block on the chain
@@ -63,7 +63,7 @@ impl PbftNode {
         service: Box<dyn Service>,
         state: &mut PbftState,
     ) -> Self {
-        let mut n = PbftNode {
+        let mut n = PoERNode {
             service,
             msg_log: PbftLog::new(config),
         };
@@ -87,8 +87,8 @@ impl PbftNode {
                         error!("Failed to broadcast bootstrap commit due to error: {}", err)
                     });
             }
-            let contents = PbftNode::read_chain();
-            let leader = PbftNode::choose_leader(contents);
+            let contents = PoERNode::read_chain();
+            let leader = PoERNode::choose_leader(contents);
             info!("=====pbft_state: primary========={:#?}", leader);
             state.set_primary_id(leader);
         }
@@ -162,7 +162,7 @@ impl PbftNode {
 
     // ---------- Methods for handling Updates from the Validator ----------
 
-    /// Handle a peer message from another PbftNode
+    /// Handle a peer message from another PoERNode
     ///
     /// Handle all messages from other nodes. Such messages include `PrePrepare`, `Prepare`,
     /// `Commit`, `ViewChange`, and `NewView`. Make sure the message is from a PBFT member. If the
@@ -282,7 +282,7 @@ impl PbftNode {
 
         // Add message to the log
         self.msg_log.add_message(msg.clone());
-        info!("===========handle_pre_prepare message==============={:#?}", msg);
+        info!("===========handle_pre_prepare message==============={:#?}", msg.message);
 
         // If the node is in the PrePreparing phase, this message is for the current sequence
         // number, and the node already has this block: switch to Preparing
@@ -383,7 +383,7 @@ impl PbftNode {
         //     )));
         // }
 
-        info!("===========handle_prepare message==============={:#?}", msg);
+        info!("===========handle_prepare message==============={:#?}", msg.message);
         self.msg_log.add_message(msg);
         
         // if this node is primary, count vote, and broadcast Prepare
@@ -463,7 +463,7 @@ impl PbftNode {
             )));
         }
 
-        info!("===========handle_commit message==============={:#?}", msg);
+        info!("===========handle_commit message==============={:#?}", msg.message);
         self.msg_log.add_message(msg);
 
         // if this node is primary, count vote, and commit
@@ -1927,8 +1927,8 @@ impl PbftNode {
 
         info!("{}: Starting change to view {}", state, view);
 
-        let data = PbftNode::read_chain();
-        let leader = PbftNode::choose_leader(data);
+        let data = PoERNode::read_chain();
+        let leader = PoERNode::choose_leader(data);
         // info!("===========leader==============={:#?}", leader);
         state.set_primary_id(leader);
         // info!("===========state leader get==============={:#?}", state.get_primary_id());
@@ -1955,6 +1955,7 @@ impl PbftNode {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -5372,3 +5373,4 @@ mod tests {
         )));
     }
 }
+*/

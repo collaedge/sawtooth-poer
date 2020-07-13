@@ -24,7 +24,7 @@ use sawtooth_sdk::consensus::{engine::*, service::Service};
 use crate::config::PbftConfig;
 use crate::error::PbftError;
 use crate::message_type::ParsedMessage;
-use crate::node::PbftNode;
+use crate::node::PoERNode;
 use crate::state::{PbftMode, PbftState};
 use crate::storage::get_storage;
 use crate::timing;
@@ -73,7 +73,7 @@ impl Engine for PbftEngine {
 
         let mut block_publishing_ticker = timing::Ticker::new(self.config.block_publishing_delay);
 
-        let mut node = PbftNode::new(
+        let mut node = PoERNode::new(
             &self.config,
             chain_head,
             peers,
@@ -144,7 +144,7 @@ impl Engine for PbftEngine {
 }
 
 fn handle_update(
-    node: &mut PbftNode,
+    node: &mut PoERNode,
     incoming_message: Result<Update, RecvTimeoutError>,
     state: &mut PbftState,
 ) -> Result<bool, PbftError> {
@@ -194,7 +194,7 @@ fn handle_update(
 
 #[cfg(test)]
 pub fn test_handle_update(
-    node: &mut PbftNode,
+    node: &mut PoERNode,
     incoming_message: Result<Update, RecvTimeoutError>,
     state: &mut PbftState,
 ) -> Result<bool, PbftError> {
