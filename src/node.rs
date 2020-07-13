@@ -90,7 +90,7 @@ impl PbftNode {
             let contents = PbftNode::read_chain();
             let leader = PbftNode::choose_leader(contents);
             state.set_primary_id(leader);
-            info!("=====pbft_state: primary id========={:#?}", state.get_primary_id());
+            info!("=====pbft_state: primary========={:#?}", leader);
         }
         
         // Primary initializes a block
@@ -279,16 +279,17 @@ impl PbftNode {
 
         // Add message to the log
         self.msg_log.add_message(msg.clone());
-        // info!("===========handle_pre_prepare message==============={:#?}", msg);
+        info!("===========handle_pre_prepare message==============={:#?}", msg);
 
         // If the node is in the PrePreparing phase, this message is for the current sequence
         // number, and the node already has this block: switch to Preparing
-        self.try_preparing(msg.get_block_id(), state)
+///        self.try_preparing(msg.get_block_id(), state)
 
-        // If this message is for the current sequence number and the node is in the PrePreparing
-        // phase, check if the node is ready to move on to the Preparing phase
-        /*
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::PrePreparing {
+
+        // if this node is primary, count vote, and broadcast Prepare
+        if info.get_seq_num() == state.seq_num && 
+            state.phase == PbftPhase::PrePreparing && state.is_primary() {
+            info!("===========primary handle pre-prepare===============");
             // Stop idle timeout, since a new block and valid PrePrepare were received in time
             state.idle_timeout.stop();
             // Now start the commit timeout in case the network fails to commit the block
@@ -309,10 +310,9 @@ impl PbftNode {
                 // Check if there are at least 2f + 1 Prepares
                 .len() as u64
                 > 2 * state.f;
-            if has_matching_pre_prepare && has_required_prepares {
+            if has_required_prepares {
                 state.switch_phase(PbftPhase::Preparing)?;
-                self.send_pbft_message(
-                    state.get_primary_id(),
+                self.broadcast_pbft_message(
                     state.view,
                     state.seq_num,
                     PbftMessageType::Prepare,
@@ -320,8 +320,32 @@ impl PbftNode {
                     state,
                 )?;
             }
+    
         }
-        */
+
+        // If this node is secondary node and if this message is for the current sequence number 
+        // and the node is in the PrePreparing phase,
+        // check if the node is ready to move on to the Preparing phase
+        if info.get_seq_num() == state.seq_num && 
+            state.phase == PbftPhase::PrePreparing && !state.is_primary() {
+            info!("===========pre-prepare secondary: switch to prepare===============");
+            // Stop idle timeout, since a new block and valid PrePrepare were received in time
+            state.idle_timeout.stop();
+            // Now start the commit timeout in case the network fails to commit the block
+            // within a reasonable amount of time
+            state.commit_timeout.start();
+            
+            state.switch_phase(PbftPhase::Preparing)?;
+            self.send_pbft_message(
+                state.get_primary_id(),
+                state.view,
+                state.seq_num,
+                PbftMessageType::Prepare,
+                block_id,
+                state,
+            )?;
+
+        }
         
     }
 
@@ -348,25 +372,27 @@ impl PbftNode {
         }
 
         // The primary is not allowed to send a Prepare; its PrePrepare counts as its "vote"
-        if PeerId::from(info.get_signer_id()) == state.get_primary_id() {
-            self.start_view_change(state, state.view + 1)?;
-            return Err(PbftError::FaultyPrimary(format!(
-                "Received Prepare from primary at view {}, seq_num {}",
-                state.view, state.seq_num
-            )));
-        }
+        // if PeerId::from(info.get_signer_id()) == state.get_primary_id() {
+        //     self.start_view_change(state, state.view + 1)?;
+        //     return Err(PbftError::FaultyPrimary(format!(
+        //         "Received Prepare from primary at view {}, seq_num {}",
+        //         state.view, state.seq_num
+        //     )));
+        // }
 
         self.msg_log.add_message(msg);
+        info!("===========handle_prepare message==============={:#?}", msg);
 
-        // If this message is for the current sequence number and the node is in the Preparing
-        // phase, check if the node is ready to move on to the Committing phase
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::Preparing {
-            // The node is ready to move on to the Committing phase (i.e. the predicate `prepared`
-            // is true) when its log has 2f + 1 Prepare messages from different nodes that match
-            // the PrePrepare message received earlier (same view, sequence number, and block)
+        // if this node is primary, count vote, and broadcast Prepare
+        if info.get_seq_num() == state.seq_num && 
+                state.phase == PbftPhase::Preparing && state.is_primary() {
+            info!("===========primary handle prepare===============");
             let has_matching_pre_prepare =
                 self.msg_log
                     .has_pre_prepare(info.get_seq_num(), info.get_view(), &block_id);
+            // The node is ready to move on to the Committing phase (i.e. the predicate `prepared`
+            // is true) when its log has 2f + 1 Prepare messages from different nodes that match
+            // the PrePrepare message received earlier (same view, sequence number, and block)
             let has_required_prepares = self
                 .msg_log
                 // Only get Prepares with matching seq_num, view, and block_id
@@ -379,7 +405,7 @@ impl PbftNode {
                 // Check if there are at least 2f + 1 Prepares
                 .len() as u64
                 > 2 * state.f;
-            if has_matching_pre_prepare && has_required_prepares {
+            if has_required_prepares && has_matching_pre_prepare{
                 state.switch_phase(PbftPhase::Committing)?;
                 self.broadcast_pbft_message(
                     state.view,
@@ -389,6 +415,25 @@ impl PbftNode {
                     state,
                 )?;
             }
+    
+        }
+
+        // If this node is secondary node and if this message is for the current sequence number 
+        // and the node is in the Preparing phase,
+        // check if the node is ready to move on to the Committing phase
+        if info.get_seq_num() == state.seq_num && 
+            state.phase == PbftPhase::Preparing && !state.is_primary() {
+            info!("===========prepare secondary: switch to commit===============");
+            state.switch_phase(PbftPhase::Committing)?;
+            self.send_pbft_message(
+                state.get_primary_id(),
+                state.view,
+                state.seq_num,
+                PbftMessageType::Commit,
+                block_id,
+                state,
+            )?;
+
         }
 
         Ok(())
@@ -416,29 +461,28 @@ impl PbftNode {
         }
 
         self.msg_log.add_message(msg);
+        info!("===========handle_commit message==============={:#?}", msg);
 
-        // If this message is for the current sequence number and the node is in the Committing
-        // phase, check if the node is ready to commit the block
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::Committing {
+        // if this node is primary, count vote, and commit
+        if info.get_seq_num() == state.seq_num && 
+                state.phase == PbftPhase::Committing && state.is_primary() {
+            info!("===========primary handle commit===============");
             // The node is ready to commit the block (i.e. the predicate `committable` is true)
             // when its log has 2f + 1 Commit messages from different nodes that match the
             // PrePrepare message received earlier (same view, sequence number, and block)
-            let has_matching_pre_prepare =
-                self.msg_log
-                    .has_pre_prepare(info.get_seq_num(), info.get_view(), &block_id);
-            let has_required_commits = self
+            let has_required_prepares = self
                 .msg_log
-                // Only get Commits with matching seq_num, view, and block_id
+                // Only get Prepares with matching seq_num, view, and block_id
                 .get_messages_of_type_seq_view_block(
                     PbftMessageType::Commit,
                     info.get_seq_num(),
                     info.get_view(),
                     &block_id,
                 )
-                // Check if there are at least 2f + 1 Commits
+                // Check if there are at least 2f + 1 Prepares
                 .len() as u64
                 > 2 * state.f;
-            if has_matching_pre_prepare && has_required_commits {
+            if has_required_prepares {
                 self.service.commit_block(block_id.clone()).map_err(|err| {
                     PbftError::ServiceError(
                         format!("Failed to commit block {:?}", hex::encode(&block_id)),
@@ -449,6 +493,22 @@ impl PbftNode {
                 // Stop the commit timeout, since the network has agreed to commit the block
                 state.commit_timeout.stop();
             }
+    
+        }
+
+        if !state.is_primary() {
+            info!("===========commit secondary: switch to Finishing===============");
+           
+            self.service.commit_block(block_id.clone()).map_err(|err| {
+                PbftError::ServiceError(
+                    format!("Failed to commit block {:?}", hex::encode(&block_id)),
+                    err,
+                )
+            })?;
+            state.switch_phase(PbftPhase::Finishing(false))?;
+            // Stop the commit timeout, since the network has agreed to commit the block
+            state.commit_timeout.stop();
+
         }
 
         Ok(())
@@ -848,7 +908,7 @@ impl PbftNode {
             } else {
                 // If the node is in the PrePreparing phase and it already has a PrePrepare for
                 // this block: switch to Preparing
-                self.try_preparing(block.block_id, state)?;
+                self.try_preparing_to_primary(block.block_id, state.get_primary_id() state)?;
             }
         }
 
@@ -1121,6 +1181,43 @@ impl PbftNode {
                 // The primary doesn't broadcast a Prepare; its PrePrepare counts as its "vote"
                 if !state.is_primary() {
                     self.broadcast_pbft_message(
+                        state.view,
+                        state.seq_num,
+                        PbftMessageType::Prepare,
+                        block_id,
+                        state,
+                    )?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// When the node has a block and a corresponding PrePrepare for its current sequence number,
+    /// and it is in the PrePreparing phase, it can enter the Preparing phase and send its
+    /// Prepare to primary
+    fn try_preparing_to_primary(&mut self, block_id: BlockId, primary_id: PeerId, state: &mut PbftState) -> Result<(), PbftError> {
+        if let Some(block) = self.msg_log.get_block_with_id(&block_id) {
+            if state.phase == PbftPhase::PrePreparing
+                && self.msg_log.has_pre_prepare(state.seq_num, state.view, &block_id)
+                // PrePrepare.seq_num == state.seq_num == block.block_num enforces the one-to-one
+                // correlation between seq_num and block_num (PrePrepare n should be for block n)
+                && block.block_num == state.seq_num
+            {
+                state.switch_phase(PbftPhase::Preparing)?;
+
+                // Stop idle timeout, since a new block and valid PrePrepare were received in time
+                state.idle_timeout.stop();
+
+                // Now start the commit timeout in case the network fails to commit the block
+                // within a reasonable amount of time
+                state.commit_timeout.start();
+
+                // The primary doesn't broadcast a Prepare; its PrePrepare counts as its "vote"
+                if !state.is_primary() {
+                    self.send_pbft_message(
+                        primary_id,
                         state.view,
                         state.seq_num,
                         PbftMessageType::Prepare,
@@ -1703,7 +1800,7 @@ impl PbftNode {
 
     fn send_pbft_message(
         &mut self,
-        leader_id: Vec<u8>,
+        primary_id: Vec<u8>,
         view: u64,
         seq_num: u64,
         msg_type: PbftMessageType,
@@ -1721,7 +1818,7 @@ impl PbftNode {
 
         trace!("{}: Created PBFT message: {:?}", state, msg);
 
-        self.send_message(leader_id, ParsedMessage::from_pbft_message(msg)?, state)
+        self.send_message(primary_id, ParsedMessage::from_pbft_message(msg)?, state)
     }
 
     /// Broadcast the specified message to all of the node's peers, including itself
@@ -1749,14 +1846,14 @@ impl PbftNode {
 
     fn send_message(
         &mut self,
-        leader_id: Vec<u8>,
+        primary_id: Vec<u8>,
         msg: ParsedMessage,
         state: &mut PbftState,
     ) -> Result<(), PbftError> {
         self.service
             .send_to(
                 // peer
-                &leader_id,
+                &primary_id,
                 // message_type
                 String::from(msg.info().get_msg_type()).as_str(),
                 // payload
@@ -1829,9 +1926,9 @@ impl PbftNode {
 
         let data = PbftNode::read_chain();
         let leader = PbftNode::choose_leader(data);
-        info!("===========leader==============={:#?}", leader);
+        // info!("===========leader==============={:#?}", leader);
         state.set_primary_id(leader);
-        info!("===========state leader get==============={:#?}", state.get_primary_id());
+        // info!("===========state leader get==============={:#?}", state.get_primary_id());
 
         state.mode = PbftMode::ViewChanging(view);
 
