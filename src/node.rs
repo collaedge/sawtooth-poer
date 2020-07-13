@@ -89,8 +89,8 @@ impl PbftNode {
             }
             let contents = PbftNode::read_chain();
             let leader = PbftNode::choose_leader(contents);
-            state.set_primary_id(leader);
             info!("=====pbft_state: primary========={:#?}", leader);
+            state.set_primary_id(leader);
         }
         
         // Primary initializes a block
@@ -229,6 +229,9 @@ impl PbftNode {
         msg: ParsedMessage,
         state: &mut PbftState,
     ) -> Result<(), PbftError> {
+        let info = msg.info().clone();
+        let block_id = msg.get_block_id();
+
         // Check that the message is from the current primary
         if PeerId::from(msg.info().get_signer_id()) != state.get_primary_id() {
             warn!(
@@ -283,7 +286,7 @@ impl PbftNode {
 
         // If the node is in the PrePreparing phase, this message is for the current sequence
         // number, and the node already has this block: switch to Preparing
-///        self.try_preparing(msg.get_block_id(), state)
+//        self.try_preparing(msg.get_block_id(), state)
 
 
         // if this node is primary, count vote, and broadcast Prepare
@@ -316,7 +319,7 @@ impl PbftNode {
                     state.view,
                     state.seq_num,
                     PbftMessageType::Prepare,
-                    block_id,
+                    block_id.clone(),
                     state,
                 )?;
             }
@@ -341,12 +344,12 @@ impl PbftNode {
                 state.view,
                 state.seq_num,
                 PbftMessageType::Prepare,
-                block_id,
+                block_id.clone(),
                 state,
             )?;
 
         }
-        
+        Ok(())
     }
 
     /// Handle a `Prepare` message
@@ -380,9 +383,9 @@ impl PbftNode {
         //     )));
         // }
 
-        self.msg_log.add_message(msg);
         info!("===========handle_prepare message==============={:#?}", msg);
-
+        self.msg_log.add_message(msg);
+        
         // if this node is primary, count vote, and broadcast Prepare
         if info.get_seq_num() == state.seq_num && 
                 state.phase == PbftPhase::Preparing && state.is_primary() {
@@ -411,7 +414,7 @@ impl PbftNode {
                     state.view,
                     state.seq_num,
                     PbftMessageType::Commit,
-                    block_id,
+                    block_id.clone(),
                     state,
                 )?;
             }
@@ -430,7 +433,7 @@ impl PbftNode {
                 state.view,
                 state.seq_num,
                 PbftMessageType::Commit,
-                block_id,
+                block_id.clone(),
                 state,
             )?;
 
@@ -460,8 +463,8 @@ impl PbftNode {
             )));
         }
 
-        self.msg_log.add_message(msg);
         info!("===========handle_commit message==============={:#?}", msg);
+        self.msg_log.add_message(msg);
 
         // if this node is primary, count vote, and commit
         if info.get_seq_num() == state.seq_num && 
@@ -908,7 +911,7 @@ impl PbftNode {
             } else {
                 // If the node is in the PrePreparing phase and it already has a PrePrepare for
                 // this block: switch to Preparing
-                self.try_preparing_to_primary(block.block_id, state.get_primary_id() state)?;
+                self.try_preparing_to_primary(block.block_id, state.get_primary_id(), state)?;
             }
         }
 
