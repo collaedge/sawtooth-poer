@@ -140,14 +140,14 @@ impl PoERNode {
         
 
         let ms: HashMap<&str, &str> = [
-            // ("server_a", "02a91f8aeb169181bcc0ae30f386b7a344a7147b7850e85083cc0e00c265b91659"),
-            // ("server_b", "03dce7069786b96a54ca9920093db2afe5b1cfd97dd55ff657064ea90f635267bc"),
-            // ("server_c", "039000a07ee2bbd18ac69e70ad9bc673a6fe7a292fda7642a1fd3ffa0488044890"),
-            // ("server_d", "02b6a85f2ca41c76d516968446cc6c775d762a22c9993e7da0a3279385657ec0af")
-            ("server_e", "02ee60e406ff234a707cffe5c1c13547fd3e032a16bb26b2e401b94fa3b207e6ba"),
-            ("server_f", "0206b68914af66d8b4b79564da5ad7f155c6fb71ce25b33ec7698b9c7a21148126"),
-            ("server_g", "02482087f7812bd39bad4a21055569a24590bb6fd77ba319e9131b88548d567e66"),
-            ("server_h", "024f40c7bbc892d82ff456d30fe8c4ffcbbb26890dc4296a4f4f5ab2912552ca33")
+            ("server_a", "03d08a610cfd44c21e57f64ca3de0c229769f86625ffb02d550f9968c73dd17bb7"),
+            ("server_b", "03e26d2eafd17f1ee2709ffeb3fa37f1bb5bf69e317447a282ada2a0fd604c437e"),
+            ("server_c", "02bd52f71bfa7f3dbd9133a71c368d0e536221e5420a9cc107ae2ae3a163233dc0"),
+            ("server_d", "0297c2b0f1092d13d47e39210d87dd9f79485c40732ba78b4fba2bdedd77fe8c29")
+            // ("server_e", "02ee60e406ff234a707cffe5c1c13547fd3e032a16bb26b2e401b94fa3b207e6ba"),
+            // ("server_f", "0206b68914af66d8b4b79564da5ad7f155c6fb71ce25b33ec7698b9c7a21148126"),
+            // ("server_g", "02482087f7812bd39bad4a21055569a24590bb6fd77ba319e9131b88548d567e66"),
+            // ("server_h", "024f40c7bbc892d82ff456d30fe8c4ffcbbb26890dc4296a4f4f5ab2912552ca33")
         ].iter().cloned().collect();
 
         if leader != ""{
