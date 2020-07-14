@@ -140,10 +140,10 @@ impl PoERNode {
         
 
         let ms: HashMap<&str, &str> = [
-            ("server_a", "03d08a610cfd44c21e57f64ca3de0c229769f86625ffb02d550f9968c73dd17bb7"),
-            ("server_b", "03e26d2eafd17f1ee2709ffeb3fa37f1bb5bf69e317447a282ada2a0fd604c437e"),
-            ("server_c", "02bd52f71bfa7f3dbd9133a71c368d0e536221e5420a9cc107ae2ae3a163233dc0"),
-            ("server_d", "0297c2b0f1092d13d47e39210d87dd9f79485c40732ba78b4fba2bdedd77fe8c29")
+            ("server_a", "0287ffe5552884f8b008aef66d8949d572b8e910aa5de40772966e0b772ba12d23"),
+            ("server_b", "02dd7a72f26fc393421c7cff0e6425218b2af5dbc77d854b2b84973e399951917b"),
+            ("server_c", "034a095267bc5821ef6b73662b5a744f20e92273f852f5d9b8600d132b325ba216"),
+            ("server_d", "03aba4d68e88e4fccfecca8eeeefa023a45c583989e611e76a02908ec67dfd359d")
             // ("server_e", "02ee60e406ff234a707cffe5c1c13547fd3e032a16bb26b2e401b94fa3b207e6ba"),
             // ("server_f", "0206b68914af66d8b4b79564da5ad7f155c6fb71ce25b33ec7698b9c7a21148126"),
             // ("server_g", "02482087f7812bd39bad4a21055569a24590bb6fd77ba319e9131b88548d567e66"),
