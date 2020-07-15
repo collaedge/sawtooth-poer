@@ -911,7 +911,7 @@ impl PoERNode {
             } else {
                 // If the node is in the PrePreparing phase and it already has a PrePrepare for
                 // this block: switch to Preparing
-                self.try_preparing(block.block_id, state.get_primary_id(), state)?;
+                self.try_preparing(block.block_id, state)?;
             }
         }
 
