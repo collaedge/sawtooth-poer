@@ -72,6 +72,9 @@ impl PoERNode {
         n.msg_log.add_validated_block(chain_head.clone());
         state.chain_head = chain_head.block_id.clone();
 
+        let d = state.chain_head.payload;
+        info!("========chain head payload ==============={:#?}", hex::decode(d));
+
         // If starting up from a non-genesis block, the node may need to perform some special
         // actions
         if chain_head.block_num > 1 {
@@ -911,7 +914,7 @@ impl PoERNode {
             } else {
                 // If the node is in the PrePreparing phase and it already has a PrePrepare for
                 // this block: switch to Preparing
-                self.try_preparing_to_primary(block.block_id, state.get_primary_id(), state)?;
+                self.try_preparing(block.block_id, state.get_primary_id(), state)?;
             }
         }
 
