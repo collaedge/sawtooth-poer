@@ -72,9 +72,6 @@ impl PoERNode {
         n.msg_log.add_validated_block(chain_head.clone());
         state.chain_head = chain_head.block_id.clone();
 
-        let d = state.chain_head.payload;
-        info!("========chain head payload ==============={:#?}", hex::decode(d));
-
         // If starting up from a non-genesis block, the node may need to perform some special
         // actions
         if chain_head.block_num > 1 {
