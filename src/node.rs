@@ -21,7 +21,7 @@ use std::convert::From;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::str;
 
 use itertools::Itertools;
@@ -115,7 +115,7 @@ impl PoERNode {
 
     pub fn choose_leader(data: String) -> Vec<u8>{
         let value: Vec<&str> = data.split(',').collect();
-        let mut map = BTreeMap::new();
+        let mut map = HashMap::new();
         let mut i = 0; 
         while i < value.len() -1 {
             let worker = value.get(i+1).unwrap();
@@ -139,7 +139,7 @@ impl PoERNode {
         info!("===========leader==============={:#?}", leader);
         
 
-        let ms: BTreeMap<&str, &str> = [
+        let ms: HashMap<&str, &str> = [
             ("server_a", "0287ffe5552884f8b008aef66d8949d572b8e910aa5de40772966e0b772ba12d23"),
             ("server_b", "02dd7a72f26fc393421c7cff0e6425218b2af5dbc77d854b2b84973e399951917b"),
             ("server_c", "034a095267bc5821ef6b73662b5a744f20e92273f852f5d9b8600d132b325ba216"),
