@@ -503,7 +503,8 @@ impl PoERNode {
         }
         /*
         // if this node is primary, count vote, and commit
-        if state.phase == PbftPhase::Committing && state.is_primary() {
+        if info.get_seq_num() == state.seq_num && 
+                state.phase == PbftPhase::Committing && state.is_primary() {
             info!("===========primary handle commit===============");
             // The node is ready to commit the block (i.e. the predicate `committable` is true)
             // when its log has 2f + 1 Commit messages from different nodes that match the
