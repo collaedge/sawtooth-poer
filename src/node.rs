@@ -89,7 +89,7 @@ impl PoERNode {
             }
             let contents = PoERNode::read_chain();
             let leader = PoERNode::choose_leader(contents);
-            // info!("=====pbft_state: primary========={:#?}", leader);
+            info!("=====pbft_state: primary========={:#?}", leader);
             state.set_primary_id(leader);
         }
         
@@ -286,11 +286,10 @@ impl PoERNode {
 
         // If the node is in the PrePreparing phase, this message is for the current sequence
         // number, and the node already has this block: switch to Preparing
-        self.try_preparing(msg.get_block_id(), state)
+//        self.try_preparing(msg.get_block_id(), state)
 
 
         // if this node is primary, count vote, and broadcast Prepare
-        /*
         if info.get_seq_num() == state.seq_num && 
             state.phase == PbftPhase::PrePreparing && state.is_primary() {
             info!("===========primary handle pre-prepare===============");
@@ -326,7 +325,6 @@ impl PoERNode {
             }
     
         }
-        
 
         // If this node is secondary node and if this message is for the current sequence number 
         // and the node is in the PrePreparing phase,
@@ -352,7 +350,6 @@ impl PoERNode {
 
         }
         Ok(())
-        */
     }
 
     /// Handle a `Prepare` message
@@ -378,27 +375,27 @@ impl PoERNode {
         }
 
         // The primary is not allowed to send a Prepare; its PrePrepare counts as its "vote"
-        if PeerId::from(info.get_signer_id()) == state.get_primary_id() {
-            self.start_view_change(state, state.view + 1)?;
-            return Err(PbftError::FaultyPrimary(format!(
-                "Received Prepare from primary at view {}, seq_num {}",
-                state.view, state.seq_num
-            )));
-        }
+        // if PeerId::from(info.get_signer_id()) == state.get_primary_id() {
+        //     self.start_view_change(state, state.view + 1)?;
+        //     return Err(PbftError::FaultyPrimary(format!(
+        //         "Received Prepare from primary at view {}, seq_num {}",
+        //         state.view, state.seq_num
+        //     )));
+        // }
 
         info!("===========handle_prepare message==============={:#?}", msg.message);
         self.msg_log.add_message(msg);
         
         // if this node is primary, count vote, and broadcast Prepare
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::Preparing 
-            /*&& state.is_primary()*/ {
+        if info.get_seq_num() == state.seq_num && 
+                state.phase == PbftPhase::Preparing && state.is_primary() {
             info!("===========primary handle prepare===============");
-            // The node is ready to move on to the Committing phase (i.e. the predicate `prepared`
-            // is true) when its log has 2f + 1 Prepare messages from different nodes that match
-            // the PrePrepare message received earlier (same view, sequence number, and block)
             let has_matching_pre_prepare =
                 self.msg_log
                     .has_pre_prepare(info.get_seq_num(), info.get_view(), &block_id);
+            // The node is ready to move on to the Committing phase (i.e. the predicate `prepared`
+            // is true) when its log has 2f + 1 Prepare messages from different nodes that match
+            // the PrePrepare message received earlier (same view, sequence number, and block)
             let has_required_prepares = self
                 .msg_log
                 // Only get Prepares with matching seq_num, view, and block_id
@@ -421,8 +418,9 @@ impl PoERNode {
                     state,
                 )?;
             }
+    
         }
-        /*
+
         // If this node is secondary node and if this message is for the current sequence number 
         // and the node is in the Preparing phase,
         // check if the node is ready to move on to the Committing phase
@@ -440,7 +438,6 @@ impl PoERNode {
             )?;
 
         }
-        */
 
         Ok(())
     }
@@ -468,40 +465,7 @@ impl PoERNode {
 
         info!("===========handle_commit message==============={:#?}", msg.message);
         self.msg_log.add_message(msg);
-        // If this message is for the current sequence number and the node is in the Committing
-        // phase, check if the node is ready to commit the block
-        if info.get_seq_num() == state.seq_num && state.phase == PbftPhase::Committing {
-            // The node is ready to commit the block (i.e. the predicate `committable` is true)
-            // when its log has 2f + 1 Commit messages from different nodes that match the
-            // PrePrepare message received earlier (same view, sequence number, and block)
-            let has_matching_pre_prepare =
-                self.msg_log
-                    .has_pre_prepare(info.get_seq_num(), info.get_view(), &block_id);
-            let has_required_commits = self
-                .msg_log
-                // Only get Commits with matching seq_num, view, and block_id
-                .get_messages_of_type_seq_view_block(
-                    PbftMessageType::Commit,
-                    info.get_seq_num(),
-                    info.get_view(),
-                    &block_id,
-                )
-                // Check if there are at least 2f + 1 Commits
-                .len() as u64
-                > 2 * state.f;
-            if has_matching_pre_prepare && has_required_commits {
-                self.service.commit_block(block_id.clone()).map_err(|err| {
-                    PbftError::ServiceError(
-                        format!("Failed to commit block {:?}", hex::encode(&block_id)),
-                        err,
-                    )
-                })?;
-                state.switch_phase(PbftPhase::Finishing(false))?;
-                // Stop the commit timeout, since the network has agreed to commit the block
-                state.commit_timeout.stop();
-            }
-        }
-        /*
+
         // if this node is primary, count vote, and commit
         if state.phase == PbftPhase::Committing && state.is_primary() {
             info!("===========primary handle commit===============");
@@ -548,7 +512,6 @@ impl PoERNode {
             state.commit_timeout.stop();
 
         }
-        */
 
         Ok(())
     }
