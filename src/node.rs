@@ -1936,7 +1936,7 @@ impl PoERNode {
         state.set_primary_id(leader);
         // info!("===========state leader get==============={:#?}", state.get_primary_id());
 
-        state.mode = PbftMode::ViewChanging(view);
+        // state.mode = PbftMode::ViewChanging(view);
 
         // Stop the idle and commit timeouts because they are not needed until after the view
         // change
@@ -1948,13 +1948,13 @@ impl PoERNode {
         state.view_change_timeout.stop();
 
         // Broadcast the view change message
-        self.broadcast_pbft_message(
-            view,
-            state.seq_num - 1,
-            PbftMessageType::ViewChange,
-            BlockId::new(),
-            state,
-        )
+        // self.broadcast_pbft_message(
+        //     view,
+        //     state.seq_num - 1,
+        //     PbftMessageType::ViewChange,
+        //     BlockId::new(),
+        //     state,
+        // )
     }
 }
 
